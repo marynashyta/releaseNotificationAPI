@@ -13,6 +13,10 @@ final class SubscriptionController
 {
     public function __construct(private SubscriptionService $service) {}
 
+    /**
+     * POST /api/subscribe
+     * Body: {"email": "...", "repo": "owner/repo"}
+     */
     public function subscribe(Request $req, Response $res): Response
     {
         $body  = $req->getParsedBody();
@@ -32,6 +36,11 @@ final class SubscriptionController
         }
     }
 
+    /**
+     * GET /api/confirm/{token}
+     *
+     * @param array<string, string> $args
+     */
     public function confirm(Request $req, Response $res, array $args): Response
     {
         $token = trim($args['token'] ?? '');
@@ -48,6 +57,11 @@ final class SubscriptionController
         }
     }
 
+    /**
+     * GET /api/unsubscribe/{token}
+     *
+     * @param array<string, string> $args
+     */
     public function unsubscribe(Request $req, Response $res, array $args): Response
     {
         $token = trim($args['token'] ?? '');
@@ -64,6 +78,9 @@ final class SubscriptionController
         }
     }
 
+    /**
+     * GET /api/subscriptions?email=...
+     */
     public function getSubscriptions(Request $req, Response $res): Response
     {
         $params = $req->getQueryParams();
@@ -81,11 +98,18 @@ final class SubscriptionController
         }
     }
 
+    /**
+     * A 64-character lowercase hex string — the format produced by bin2hex(random_bytes(32)).
+     */
     private function isValidToken(string $token): bool
     {
         return (bool) preg_match('/^[0-9a-f]{64}$/', $token);
     }
 
+    /**
+     * Encode $data as JSON and write it into the response.
+     * JSON_THROW_ON_ERROR ensures json_encode() never silently returns false.
+     */
     private function json(Response $res, mixed $data, int $status): Response
     {
         $payload = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
