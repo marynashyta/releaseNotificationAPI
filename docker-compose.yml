@@ -1,0 +1,99 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8080:80"
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      APP_URL: http://localhost:8080
+      MAIL_FROM_ADDRESS: noreply@releases-api.app
+      MAIL_FROM_NAME: "Release Notifications"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-so", "/dev/null", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    restart: unless-stopped
+
+  scanner:
+    build: .
+    command: ["php", "/var/www/html/bin/scanner.php"]
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      APP_URL: http://localhost:8080
+      SCANNER_INTERVAL: 300
+      MAIL_FROM_ADDRESS: noreply@releases-api.app
+      MAIL_FROM_NAME: "Release Notifications"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-release_notifications}
+      MYSQL_USER: ${DB_USER:-app}
+      MYSQL_PASSWORD: ${DB_PASS:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:-rootsecret}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u${DB_USER:-app} -p${DB_PASS:-secret} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    ports:
+      - "8025:8025"   # Web UI
+      - "1025:1025"   # SMTP
+    restart: unless-stopped
+
+  swagger:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8090:8080"
+    environment:
+      SWAGGER_JSON: /spec/swagger.yaml
+    volumes:
+      - ./swagger.yaml:/spec/swagger.yaml:ro
+    restart: unless-stopped
+
+volumes:
+  db_data:

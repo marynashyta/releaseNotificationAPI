@@ -1,0 +1,52 @@
+# ── Stage 1: Install PHP dependencies ─────────────────────────────────────────
+# Use a pinned Composer image to install vendor/ outside the runtime image.
+# This keeps the final layer smaller and avoids shipping Composer itself.
+FROM composer:2.7 AS deps
+
+WORKDIR /app
+
+# Copy the lock file first so this layer is only rebuilt when dependencies change.
+COPY composer.json composer.lock ./
+
+RUN composer install \
+    --no-interaction \
+    --no-scripts \
+    --prefer-dist \
+    --optimize-autoloader
+
+# ── Stage 2: Runtime image ─────────────────────────────────────────────────────
+FROM php:8.2-apache AS runtime
+
+# Install only the extensions the application actually needs.
+# --no-install-recommends keeps the layer lean.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libzip-dev \
+    curl \
+    && docker-php-ext-install pdo_mysql zip \
+    && a2enmod rewrite \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /var/www/html
+
+# Copy pre-built vendor from the deps stage (no Composer binary in prod).
+COPY --from=deps /app/vendor ./vendor
+
+# Copy application source (vendor/ is excluded via .dockerignore).
+COPY . .
+
+# Point Apache at the Slim front-controller.
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' \
+        /etc/apache2/sites-available/000-default.conf \
+    && printf '<Directory /var/www/html/public>\n    AllowOverride All\n    Require all granted\n</Directory>\n' \
+        >> /etc/apache2/sites-available/000-default.conf
+
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Any HTTP response (even 401/404 from the router) proves Apache + PHP-FPM are alive.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -so /dev/null http://localhost/ || exit 1
+
+EXPOSE 80
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["apache2-foreground"]

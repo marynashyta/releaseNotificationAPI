@@ -1,0 +1,34 @@
+{
+    "name": "release-notification/api",
+    "description": "GitHub Release Notification API",
+    "type": "project",
+    "require": {
+        "php": "^8.2",
+        "slim/slim": "^4.12",
+        "slim/psr7": "^1.6",
+        "guzzlehttp/guzzle": "^7.8",
+        "phpmailer/phpmailer": "^6.8",
+        "vlucas/phpdotenv": "^5.6",
+        "predis/predis": "^2.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "mockery/mockery": "^1.6",
+        "phpstan/phpstan": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "lint": "phpstan analyse",
+        "start": "php -S localhost:8080 -t public"
+    }
+}

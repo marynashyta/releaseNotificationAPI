@@ -1,0 +1,12 @@
+parameters:
+    level: 9
+    paths:
+        - src
+        - bin
+        - public
+    excludePaths:
+        - vendor
+    ignoreErrors:
+        # bin/scanner.php is an intentional long-running daemon; while(true) is correct here
+        - identifier: while.alwaysTrue
+          path: bin/scanner.php
