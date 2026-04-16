@@ -9,6 +9,7 @@ use App\Database\Connection;
 use App\Infrastructure\Env;
 use App\Metrics\MetricsCollector;
 use App\Middleware\ApiKeyMiddleware;
+use App\Middleware\CorsMiddleware;
 use App\Middleware\MetricsMiddleware;
 use App\Repository\SubscriptionRepository;
 use App\Services\EmailService;
@@ -78,6 +79,7 @@ $metricsController      = new MetricsController($metrics);
 
 $app->add(new MetricsMiddleware($metrics));
 $app->add(new ApiKeyMiddleware(Env::string('API_KEY')));
+$app->add(new CorsMiddleware());
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
