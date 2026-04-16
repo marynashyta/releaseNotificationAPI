@@ -28,5 +28,10 @@ done
 echo "Database connected. Running migrations..."
 php /var/www/html/bin/migrate.php
 
+find /etc/apache2/mods-enabled/ -name 'mpm_*.load' -delete 2>/dev/null || true
+find /etc/apache2/mods-enabled/ -name 'mpm_*.conf' -delete 2>/dev/null || true
+ln -sf /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load
+ln -sf /etc/apache2/mods-available/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf
+
 echo "Starting service..."
 exec "$@"
