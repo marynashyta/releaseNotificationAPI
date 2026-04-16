@@ -23,7 +23,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends libzip-dev curl \
     && apt-get install -y --no-install-recommends --only-upgrade openssl libssl3 \
     && docker-php-ext-install pdo_mysql zip \
-    && a2dismod mpm_event mpm_worker || true \
+    && a2dismod mpm_event mpm_worker mpm_prefork 2>/dev/null || true \
     && a2enmod mpm_prefork rewrite \
     && rm -rf /var/lib/apt/lists/*
 
