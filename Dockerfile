@@ -24,7 +24,10 @@ RUN apt-get update && apt-get upgrade -y --no-install-recommends \
     libzip-dev \
     curl \
     && docker-php-ext-install pdo_mysql zip \
-    && a2dismod mpm_event mpm_worker 2>/dev/null || true \
+    && rm -f /etc/apache2/mods-enabled/mpm_event.conf \
+       /etc/apache2/mods-enabled/mpm_event.load \
+       /etc/apache2/mods-enabled/mpm_worker.conf \
+       /etc/apache2/mods-enabled/mpm_worker.load \
     && a2enmod mpm_prefork rewrite \
     && rm -rf /var/lib/apt/lists/*
 
