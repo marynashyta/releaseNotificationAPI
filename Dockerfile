@@ -19,18 +19,13 @@ FROM php:8.2-apache AS runtime
 
 # Install only the extensions the application actually needs.
 # --no-install-recommends keeps the layer lean.
-RUN apt-get update && apt-get upgrade -y --no-install-recommends \
-    && apt-get install -y --no-install-recommends \
-    libzip-dev \
-    curl \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libzip-dev curl \
+    && apt-get install -y --no-install-recommends --only-upgrade openssl libssl3 \
     && docker-php-ext-install pdo_mysql zip \
+    && a2dismod mpm_event mpm_worker || true \
+    && a2enmod mpm_prefork rewrite \
     && rm -rf /var/lib/apt/lists/*
-
-RUN rm -f /etc/apache2/mods-enabled/mpm_event.conf \
-          /etc/apache2/mods-enabled/mpm_event.load \
-          /etc/apache2/mods-enabled/mpm_worker.conf \
-          /etc/apache2/mods-enabled/mpm_worker.load \
-    && a2enmod mpm_prefork rewrite
 
 WORKDIR /var/www/html
 
