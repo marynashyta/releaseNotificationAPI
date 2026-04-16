@@ -17,14 +17,19 @@ RUN composer install \
 # ── Stage 2: Runtime image ─────────────────────────────────────────────────────
 FROM php:8.2-apache AS runtime
 
+ARG MPM_RESET=v4
+
 # Install only the extensions the application actually needs.
 # --no-install-recommends keeps the layer lean.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libzip-dev curl \
     && apt-get install -y --no-install-recommends --only-upgrade openssl libssl3 \
     && docker-php-ext-install pdo_mysql zip \
-    && a2dismod mpm_event mpm_worker || true \
-    && a2enmod mpm_prefork rewrite \
+    && find /etc/apache2/mods-enabled/ -name 'mpm_*.load' -delete \
+    && find /etc/apache2/mods-enabled/ -name 'mpm_*.conf' -delete \
+    && ln -sf /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load \
+    && ln -sf /etc/apache2/mods-available/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf \
+    && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
