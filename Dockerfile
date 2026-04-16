@@ -29,7 +29,7 @@ RUN apt-get update \
     && find /etc/apache2/mods-enabled/ -name 'mpm_*.conf' -delete \
     && ln -sf /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load \
     && ln -sf /etc/apache2/mods-available/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf \
-    && a2enmod rewrite \
+    && a2enmod rewrite headers \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
