@@ -23,8 +23,10 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends libzip-dev curl \
     && apt-get install -y --no-install-recommends --only-upgrade openssl libssl3 \
     && docker-php-ext-install pdo_mysql zip \
-    && a2dismod mpm_event mpm_worker mpm_prefork 2>/dev/null || true \
-    && a2enmod mpm_prefork rewrite \
+    && find /etc/apache2/mods-enabled/ -name 'mpm_*.load' -delete \
+    && find /etc/apache2/mods-enabled/ -name 'mpm_*.conf' -delete \
+    && ln -sf /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load \
+    && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
