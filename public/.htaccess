@@ -5,8 +5,5 @@ Header always set Access-Control-Allow-Origin "*"
 Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS"
 Header always set Access-Control-Allow-Headers "Content-Type, X-API-Key"
 
-RewriteCond %{REQUEST_METHOD} OPTIONS
-RewriteRule .* - [R=204,L]
-
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^ index.php [QSA,L]

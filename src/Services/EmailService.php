@@ -94,7 +94,7 @@ final class EmailService implements EmailServiceInterface
         $mail->setFrom($this->fromAddress, $this->fromName);
         $mail->addAddress($to);
 
-        $mail->isHTML(true);
+        $mail->isHTML();
         $mail->CharSet = 'UTF-8';
         $mail->Subject = $subject;
         $mail->Body = $body;
